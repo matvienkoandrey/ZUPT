@@ -52,6 +52,7 @@ clc
 clear
 matlabrc
 global zupt_time;
+global step;
 versionstr = 'NaveGo, release v1.0';
 
 fprintf('\n%s.\n', versionstr)
@@ -731,5 +732,12 @@ if (strcmp(PLOT,'ON'))
     xlabel('Time [s]')
     ylabel('[m]')
     legend('3\sigma');
-    title('ALTITUDE ERROR');    
+    title('ALTITUDE ERROR');
+    
+    abs_fb = sqrt(imu1.fb(:, 1).^2 + imu1.fb(:, 2).^2 + imu1.fb(:, 3).^2) - 9;
+    abs_wb = sqrt(imu1.wb(:, 1).^2 + imu1.wb(:, 2).^2 + imu1.wb(:, 3).^2);
+    figure(8); hold on
+    plot(imu1_ref.t, abs_fb)
+    plot(imu1_ref.t, abs_wb)
+    plot(imu1_ref.t, 10 * step, 'r', 'linewidth', 2); grid on;
 end

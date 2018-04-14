@@ -97,6 +97,7 @@ if nargin < 4, precision = 'double'; end
 
 %% ZUPT detection algorithm
 ZUPT = 'ON';
+%ZUPT = 'OFF';
 ZUPT_H = 'OFF';
 % ZUPT_THRELHOLD = 1;%0.5;   % m/s
 % ZUPT_DELAY = 0; % seconds
@@ -207,7 +208,7 @@ std = [7.8326e-08 1.5639e-07 1];
 stdm = [0.5 0.5 1];
 stdv = [0.0514 0.0514 0.0514]; 
 
-S.R  = diag([stdv, stdm].^2);
+% S.R  = diag([stdv, stdm].^2);
 S.Q  = diag([imu.arw, imu.vrw, imu.gb_psd, imu.ab_psd].^2);
 S.Pp = diag([imu.ini_align_err, stdv, std, imu.gb_fix, imu.ab_fix, imu.gb_drift, imu.ab_drift].^2);
 
@@ -279,7 +280,9 @@ for i = 1:(Mi - 1)
 %         yawm_e(i) = hd_update (imu.mb(i,:), roll_e(i),  pitch_e(i), D);
 
     % ZUPT detection algorithm
-    zupt = is_stance_phase( i, dti, imu.fb, imu.wb, 'real_data' );
+    if strcmp(ZUPT, 'ON')
+        zupt = is_stance_phase( i, dti, imu.fb, imu.wb, 'real_data' );
+    end
     
     %% INNOVATIONS
     
@@ -303,7 +306,7 @@ for i = 1:(Mi - 1)
     
     if strcmp(ZUPT, 'ON')
         %if zupt == true
-        if step(i) == 1
+        if step(i) == 0
             if strcmp(ZUPT_H, 'ON')
                 H_h = diag([0 0 -1]);
                 S.H = [ Z I Z Z Z Z Z;
@@ -312,12 +315,13 @@ for i = 1:(Mi - 1)
                 zupt_stdh = [1 1 0.1];
                 zv = vel_e(i,:)';
                 zp = [0 0 h_e(i)-100]';
-                S.R = diag([zupt_stdv zupt_stdh]).^2;        
+                S.R = diag([stdv stdm]).^2;        
                 z = [ zv' zp' ]';
             else
                 S.H = [ Z I Z   Z Z Z Z];
 %                 zupt_stdv = [0.01 0.01 0.01];
-%                 S.R = diag(zupt_stdv).^2;    
+%                 S.R = diag(zupt_stdv).^2;
+                S.R = diag(stdv.^2);
                 z = zv;
             end
         else
